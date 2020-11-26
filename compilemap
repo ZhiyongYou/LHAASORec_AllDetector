@@ -1,0 +1,1 @@
+g++ -o map.exe map.cc src/WFCTAMap.cpp -I include `root-config --cflags --libs`

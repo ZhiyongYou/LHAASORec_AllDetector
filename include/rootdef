@@ -1,0 +1,1 @@
+rootcint -f ../src/EventDict.cpp -c KM2AEvent.h LHEvent.h LHRecEvent.h LHAASOEvent.h LaserEvent.h WFCTAMcEvent.h WCDAMcEvent.h WCDAEventRec.h WFCTAMcRecEvent.h EventLinkDef.h
