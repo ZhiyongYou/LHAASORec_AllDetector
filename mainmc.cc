@@ -89,6 +89,14 @@ int main(int argc, char *argv[])
 	double pe_4604;
 	double pe_5602;
 
+	double MaxPe;
+	int MaxPeSiPM;
+	int MaxPeTel;
+	double PeSize[6];
+	double Edge_PeSize[6];
+	int NPIX[6];
+	int Edge_NPIX[6];
+
 	int MainTel;
 	int Npix;
 	double Size;
@@ -132,6 +140,15 @@ int main(int argc, char *argv[])
 	recevent->Branch("pe_5602", &pe_5602, "pe_5602/D");
 
 	recevent->Branch("KM2ARec", &km2arec);
+
+	//parameters in single telescope
+	recevent->Branch("MaxPe", &MaxPe, "MaxPe/D");
+	recevent->Branch("MaxPeSiPM", &MaxPeSiPM, "MaxPeSiPM/I");
+	recevent->Branch("MaxPeTel", &MaxPeTel, "MaxPeTel/I");
+	recevent->Branch("PeSize", PeSize, "PeSize[6]/D");
+	recevent->Branch("Edge_PeSize", Edge_PeSize, "Edge_PeSize[6]/D");
+	recevent->Branch("NPIX", NPIX, "NPIX[6]/I");
+	recevent->Branch("Edge_NPIX", Edge_NPIX, "Edge_NPIX[6]/I");
 
 	recevent->Branch("MainTel", &MainTel, "MainTel/I");
 	recevent->Branch("Npix", &Npix, "Npix/I");
@@ -218,6 +235,14 @@ int main(int argc, char *argv[])
 			{
 				G4KM2A_Reconstruction::GetInstance(km2a_array)->eventrecline(km2a_evt,km2arec);
 			}
+			double corex_k = -km2arec->rec_y;
+			double corey_k = km2arec->rec_x;
+			//double corex_k = -km2arec->corey;
+			//double corey_k = km2arec->corex;
+			double sourcezen_km2a = km2arec->rec_theta;
+			double sourceazi_km2a = ( km2arec->rec_phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->rec_phi-90*TMath::DegToRad() : km2arec->rec_phi+270*TMath::DegToRad();
+			//double sourcezen_km2a = km2arec->theta;
+			//double sourceazi_km2a = ( km2arec->phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->phi-90*TMath::DegToRad() : km2arec->phi+270*TMath::DegToRad();
 
 			//wfcta rec//////////////////////////////////////////////////////
 			//set events
@@ -234,14 +259,20 @@ int main(int argc, char *argv[])
 			//rec
 			wfctarec->TimeClean(100);
 			wfctarec->IslandClean();
-			wfctarec->CalcMainTel(5);
+			wfctarec->CalcMainTel(4);
 			//			//wfctarec->GroupClean();
-			double prim_sourcezen_km2a = km2arec->theta;
-			double prim_sourceazi_km2a = ( km2arec->phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->phi-90*TMath::DegToRad() : km2arec->phi+270*TMath::DegToRad();
-			wfctarec->GetEventMapOnFocus(wfctarec->GetMainTel(), -km2arec->corey, km2arec->corex, prim_sourceazi_km2a, prim_sourcezen_km2a);
+			wfctarec->GetEventMapOnFocus(wfctarec->GetMainTel(), corex_k, corey_k, sourceazi_km2a, sourcezen_km2a);
 			wfctarec->MergeEvent();
 			wfctarec->CalcHillas();
 			wfctarec->CalcSDP();
+
+			MaxPe = wfctarec->GetMaxSipmPe();
+			MaxPeSiPM = wfctarec->GetMaxSipm();
+			MaxPeTel = wfctarec->GetMaxPeTel();
+			wfctarec->GetPe_Size(PeSize);
+			wfctarec->GetEdgePe_Size(Edge_PeSize);
+			wfctarec->GetNpix_Size(NPIX);
+			wfctarec->GetEdgeNpix_Size(Edge_NPIX);
 
 			MainTel = wfctarec->GetMainTel();
 			Npix = wfctarec->GetNpix();
@@ -298,14 +329,6 @@ int main(int argc, char *argv[])
 			{
 				double tel_x, tel_y;
 				WFCTAMap::Instance()->GetTelXY(MainTel, tel_x, tel_y);
-				//double corex_k = -km2arec->rec_y;
-				//double corey_k = km2arec->rec_x;
-				double corex_k = -km2arec->corey;
-				double corey_k = km2arec->corex;
-				//double sourcezen_km2a = km2arec->rec_theta;
-				//double sourceazi_km2a = ( km2arec->rec_phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->rec_phi-90*TMath::DegToRad() : km2arec->rec_phi+270*TMath::DegToRad();
-				double sourcezen_km2a = km2arec->theta;
-				double sourceazi_km2a = ( km2arec->phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->phi-90*TMath::DegToRad() : km2arec->phi+270*TMath::DegToRad();
 				RpK = DistPointToLine(corex_k,corey_k, tel_x,tel_y, sourcezen_km2a,sourceazi_km2a);
 
 				double dist_core2line = 0;

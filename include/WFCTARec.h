@@ -52,10 +52,13 @@ class WFCTARec
 		double SDP_GLine_X_km2a;  //sdp_ground_line in km2a
 		double SDP_GLine_Y_km2a;  //sdp_ground_line in km2a
 
-		//compare
-		double pe_size[6];
-		int npix_size[6];
-		int inter_npix[6];
+		//parameters in single telescope
+		double pe_size[20];
+		double edge_pe_size[20];
+		int npix_size[20];
+		int edge_npix_size[20];
+
+		int inter_npix[20];
 		int comp_tel1;
 		int comp_tel2;
 
@@ -64,6 +67,7 @@ class WFCTARec
 		int GetSipmIdInSimulation(int sipm_id);
 		void CalcHillasOnFocus(int main_tel);
 		void OuterCentroid();
+		void CalcParametersInEachTel();
 		
 	public:
 		void GetCoreToFocus(int main_tel, double zen,double azi,double corex,double corey, double *x, double *y);
@@ -100,7 +104,6 @@ class WFCTARec
 		void CalcMainTel(int main_tel);
 		void GetEventMapOnFocus(int main_tel, double core_x, double core_y, double source_azi, double source_zen);
 		void CalcCompareSize();
-		void SetEventOnMainTelFocus();
 		void MergeEvent_old(int do_clean=1);
 		void MergeEvent();
 		void CalcHillas();
@@ -133,7 +136,9 @@ class WFCTARec
 		double GetSDP_GLine_Y_km2a()	const {	return SDP_GLine_Y_km2a;	};
 		int GetTriggerTel_Num();
 		void GetPe_Size(double* tel_pe_size) const ;
+		void GetEdgePe_Size(double* tel_edge_pe_size) const ;
 		void GetNpix_Size(int* tel_npix_size) const ;
+		void GetEdgeNpix_Size(int* tel_edge_npix_size) const ;
 		void GetInter_Npix(int* tel_inter_npix) const ;
 		void GetCleanImage(std::vector<int>& clean_sipm, std::vector<double>& clean_pe, std::vector<double>& clean_t) const;
 		void GetCleanImageOnFocus_old(int main_tel, std::vector<int>& clean_sipm, std::vector<double>& clean_pe, std::vector<double>& clean_x, std::vector<double>& clean_y);

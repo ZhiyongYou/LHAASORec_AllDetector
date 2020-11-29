@@ -665,7 +665,7 @@ void LHAASOEventShow::DrawWFCTA(const std::vector<int>& clean_sipm, const std::v
 	DrawCentroid(wfcta_event.meanzen, wfcta_event.meanzen);
 	DrawSDP(wfcta_event.maintel, wfcta_event.meanzen, wfcta_event.meanzen, wfcta_event.meanx, wfcta_event.meany, wfcta_event.ddelta, wfcta_event.length);
 	//DrawSDP(wfcta_event.maintel, km2a_event.core_x, km2a_event.core_y, km2a_event.source_zen, km2a_event.source_azi);
-	DrawSDP(1, km2a_event.core_x, km2a_event.core_y, km2a_event.source_zen, km2a_event.source_azi);
+	DrawSDP(wfcta_event.maintel, km2a_event.core_x, km2a_event.core_y, km2a_event.source_zen, km2a_event.source_azi);
 }
 
 void LHAASOEventShow::DrawWCDA(const std::vector<double>& cell_x, const std::vector<double>& cell_y, const std::vector<double>& cell_pe)
@@ -675,12 +675,19 @@ void LHAASOEventShow::DrawWCDA(const std::vector<double>& cell_x, const std::vec
 	DrawSG_Line_Wcda(wfcta_event.maintel, wfcta_event.groundx_w, wfcta_event.groundy_w);
 }
 
+void LHAASOEventShow::DrawKM2A(const LHEvent& km2aevent, const char* clean)
+{
+	DrawKM2AEvent(km2aevent, clean);
+	DrawCoreKm2a(km2a_event.core_x, km2a_event.core_y);
+	DrawSG_Line_Km2a(wfcta_event.maintel, wfcta_event.groundx_k, wfcta_event.groundy_k);
+}
+
 void LHAASOEventShow::DrawWFCTA_F(const std::vector<int>& clean_focus_sipm, const std::vector<double>& clean_focus_pe, const std::vector<double>& clean_focus_x, const std::vector<double>& clean_focus_y)
 {
 	DrawWFCTAEventFocus(clean_focus_sipm, clean_focus_pe, clean_focus_x, clean_focus_y);
 	DrawSDPFocus(wfcta_event.meanx, wfcta_event.meany, wfcta_event.ddelta, wfcta_event.length);
 	//DrawSDPFocus(wfcta_event.maintel, km2a_event.core_x, km2a_event.core_y, km2a_event.source_zen, km2a_event.source_azi);
-	DrawSDPFocus(1, km2a_event.core_x, km2a_event.core_y, km2a_event.source_zen, km2a_event.source_azi);
+	DrawSDPFocus(wfcta_event.maintel, km2a_event.core_x, km2a_event.core_y, km2a_event.source_zen, km2a_event.source_azi);
 	DrawCentroidFocus(wfcta_event.meanx, wfcta_event.meany);
 	DrawArrivalDirWcda_F(wfcta_event.maintel, wcda_event.source_zen, wcda_event.source_azi);
 	DrawArrivalDirKm2a_F(wfcta_event.maintel, km2a_event.source_zen, km2a_event.source_azi);

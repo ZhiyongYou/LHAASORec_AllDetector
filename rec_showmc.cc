@@ -116,14 +116,20 @@ int main(int argc, char *argv[])
 			iEvent = wfctamc_evt->iEvent;
 			iUse = wfctamc_evt->iUse;
 			energy = wfctamc_evt->energy;
-			//if(!(10000==iEvent&&10==iUse))	continue;
+			if(!(8820==iEvent&&16==iUse))	continue;
 
 			//km2a rec///////////////////////////////////////////////////////
 			{
 				G4KM2A_Reconstruction::GetInstance(km2a_array)->eventrecline(km2a_evt,km2arec);
 			}
-			double corex_km2a = -km2arec->rec_y;
-			double corey_km2a = km2arec->rec_x;
+			//double corex_k = -km2arec->rec_y;
+			//double corey_k = km2arec->rec_x;
+			double corex_k = -km2arec->corey;
+			double corey_k = km2arec->corex;
+			//double sourcezen_km2a = km2arec->rec_theta;
+			//double sourceazi_km2a = ( km2arec->rec_phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->rec_phi-90*TMath::DegToRad() : km2arec->rec_phi+270*TMath::DegToRad();
+			double sourcezen_km2a = km2arec->theta;
+			double sourceazi_km2a = ( km2arec->phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->phi-90*TMath::DegToRad() : km2arec->phi+270*TMath::DegToRad();
 
 			//wfcta rec//////////////////////////////////////////////////////
 			//set events
@@ -140,12 +146,10 @@ int main(int argc, char *argv[])
 			//rec
 			wfctarec->TimeClean(100);
 			wfctarec->IslandClean();
-			wfctarec->CalcMainTel(1);
+			wfctarec->CalcMainTel(3);
 			//          //wfctarec->GroupClean();
-			double prim_sourcezen_km2a = km2arec->theta;
-			double prim_sourceazi_km2a = ( km2arec->phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->phi-90*TMath::DegToRad() : km2arec->phi+270*TMath::DegToRad();
-			wfctarec->GetEventMapOnFocus(wfctarec->GetMainTel(), -km2arec->corey, km2arec->corex, prim_sourceazi_km2a, prim_sourcezen_km2a);
-			wfctarec->MergeEvent();
+			wfctarec->GetEventMapOnFocus(wfctarec->GetMainTel(), corex_k, corey_k, sourceazi_km2a, sourcezen_km2a);
+			//wfctarec->MergeEvent();
 			wfctarec->CalcHillas();
 			wfctarec->CalcSDP();
 			//wfctarec->GetEventMapOnFocus( wfctarec->GetMainTel() );
@@ -182,24 +186,10 @@ int main(int argc, char *argv[])
 			DeltaK = -1000;
 			Dist_K = -1000;
 			Dist_Core2line_K = -1000;
-			double sourcezen_km2a;
-			double sourceazi_km2a;
-			double raw_sourcezen_km2a;
-			double raw_sourceazi_km2a;
 			//wfcta&km2a combine rec
 			{
 				double tel_x, tel_y;
 				WFCTAMap::Instance()->GetTelXY(MainTel, tel_x, tel_y);
-				//double corex_k = -km2arec->rec_y;
-				//double corey_k = km2arec->rec_x;
-				double corex_k = -km2arec->corey;
-				double corey_k = km2arec->corex;
-				//sourcezen_km2a = km2arec->rec_theta;
-				//sourceazi_km2a = ( km2arec->rec_phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->rec_phi-90*TMath::DegToRad() : km2arec->rec_phi+270*TMath::DegToRad();
-				sourcezen_km2a = km2arec->theta;
-				sourceazi_km2a = ( km2arec->phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->phi-90*TMath::DegToRad() : km2arec->phi+270*TMath::DegToRad();
-				raw_sourcezen_km2a = km2arec->theta;
-				raw_sourceazi_km2a = ( km2arec->phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->phi-90*TMath::DegToRad() : km2arec->phi+270*TMath::DegToRad();
 				RpK = DistPointToLine(corex_k,corey_k, tel_x,tel_y, sourcezen_km2a,sourceazi_km2a);
 
 				double dist_core2line = 0;
@@ -217,9 +207,9 @@ int main(int argc, char *argv[])
 			}
 
 			int do_flag=0;
-			if(Npix>30&&km2arec->NpE2>30&&(km2arec->corex<1.3*km2arec->corey-310.||km2arec->corex<-1.*(1./2)*km2arec->corey-175.)
+			if(Npix>20&&km2arec->NpE2>30&&(km2arec->corex<1.3*km2arec->corey-310.||km2arec->corex<-1.*(1./2)*km2arec->corey-175.)
 					&&sqrt(pow((-1*km2arec->corey+86),2)+pow((km2arec->corex+180),2))>50
-					&&sqrt(pow((-1*km2arec->corey+86),2)+pow((km2arec->corex+180),2))<160&&Npix>30&&abs(MeanY*57.3)<6&&MeanAzi*57.3>20&&MeanAzi*57.3<165&&Length/Width>2&&DeltaK*57.3>10)
+					&&sqrt(pow((-1*km2arec->corey+86),2)+pow((km2arec->corex+180),2))<160&&Npix>30&&abs(MeanY*57.3)<6&&MeanAzi*57.3>20&&MeanAzi*57.3<165&&Length/Width>2&&DeltaK*57.3>6)
 			{
 				do_flag=1;
 			}
@@ -278,14 +268,15 @@ int main(int argc, char *argv[])
 			lhaasoeventshow->SetWFCTAInfo(MainTel, Size, Npix, MeanX, MeanY, MeanAzi, MeanZen, Length, Width, DDelta,
 					SDP_GLine_X_wcda, SDP_GLine_Y_wcda, SDP_G_Angle_W, SDP_GLine_X_wcda, SDP_GLine_Y_wcda, SDP_G_Angle_W, SDP_GLine_X_km2a, SDP_GLine_Y_km2a, SDP_G_Angle_K);
 			//lhaasoeventshow->SetWCDAInfo(evrec[15], int(evrec[1]), evrec[10], evrec[11], Rp, ar_azi_w*TMath::DegToRad(), ar_zen_w*TMath::DegToRad(), DeltaW, SourceMiss_W, dist_core2line);
-			//lhaasoeventshow->SetKM2AInfo(km2arec->NfiltE, km2arec->NpE1, km2arec->NfiltM, km2arec->NuM1, corex_km2a, corey_km2a, RpK, sourceazi_km2a, sourcezen_km2a, DeltaK, SourceMiss_K, Dist_Core2line_K);
-			lhaasoeventshow->SetKM2AInfo(km2arec->NfiltE, km2arec->NpE1, km2arec->NfiltM, km2arec->NuM1, -km2arec->corey, km2arec->corex, RpK, raw_sourceazi_km2a, raw_sourcezen_km2a, DeltaK, SourceMiss_K, Dist_Core2line_K);
+			lhaasoeventshow->SetKM2AInfo(km2arec->NfiltE, km2arec->NpE1, km2arec->NfiltM, km2arec->NuM1, corex_k, corey_k, RpK, sourceazi_km2a, sourcezen_km2a, DeltaK, SourceMiss_K, Dist_Core2line_K);
+			//lhaasoeventshow->SetKM2AInfo(km2arec->NfiltE, km2arec->NpE1, km2arec->NfiltM, km2arec->NuM1, -km2arec->corey, km2arec->corex, RpK, sourceazi_km2a, sourcezen_km2a, DeltaK, SourceMiss_K, Dist_Core2line_K);
 
 			lhaasoeventshow->DrawWFCTA(clean_sipm, clean_pe, clean_t);
 			//lhaasoeventshow->DrawWCDA(wcda_clean_x, wcda_clean_y, wcda_clean_pe);
-			lhaasoeventshow->DrawKM2AEvent(*km2a_evt,"clean");
-			lhaasoeventshow->DrawCoreKm2a(corex_km2a, corey_km2a);
-			lhaasoeventshow->DrawSG_Line_Km2a(MainTel, wfctarec->GetSDP_GLine_X_km2a(), wfctarec->GetSDP_GLine_Y_km2a());
+			lhaasoeventshow->DrawKM2A(*km2a_evt,"clean");
+			//lhaasoeventshow->DrawKM2AEvent(*km2a_evt,"clean");
+			//lhaasoeventshow->DrawCoreKm2a(corex_k, corey_k);
+			//lhaasoeventshow->DrawSG_Line_Km2a(MainTel, wfctarec->GetSDP_GLine_X_km2a(), wfctarec->GetSDP_GLine_Y_km2a());
 			lhaasoeventshow->DrawWFCTA_F(clean_focus_sipm, clean_focus_pe, clean_focus_x, clean_focus_y);
 			lhaasoeventshow->DrawEventAlongSDP(slice_coords, slice_pe, slice_pix);
 

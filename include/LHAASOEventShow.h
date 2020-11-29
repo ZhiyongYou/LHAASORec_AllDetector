@@ -206,6 +206,7 @@ class LHAASOEventShow
 		void DrawEventInfo(double rp_rec);
 		void DrawWFCTA(const std::vector<int>& clean_sipm, const std::vector<double>& clean_pe, const std::vector<double>& clean_t);
 		void DrawWCDA(const std::vector<double>& cell_x, const std::vector<double>& cell_y, const std::vector<double>& cell_pe);
+		void DrawKM2A(const LHEvent& km2aevent, const char* clean="clean");
 		void DrawWFCTA_F(const std::vector<int>& clean_focus_sipm, const std::vector<double>& clean_focus_pe, const std::vector<double>& clean_focus_x, const std::vector<double>& clean_focus_y);
 		void DrawEventAlongSDP(const std::vector<double>& sipm_coords, const std::vector<double>& sipm_pe, const std::vector<int>& sipm_pix);
 		void DrawTimeAlongSDP(const std::vector<double>& slice_coords, const std::vector<double>& slice_t);

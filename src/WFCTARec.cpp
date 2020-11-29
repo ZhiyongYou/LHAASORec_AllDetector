@@ -75,7 +75,7 @@ void WFCTARec::SetWFCTAMcEvent(const std::vector<int>& iisipm, const std::vector
 	SipmT.clear();
 	for(int ii=0;ii<iisipm.size();ii++)
 	{
-		//if(!(iisipm.at(ii)>=1*1024&&iisipm.at(ii)<2*1024))continue;
+		if(!(iisipm.at(ii)>=2*1024&&iisipm.at(ii)<3*1024))continue;
 		iSipm.push_back(iisipm.at(ii));
 		SipmPe.push_back(sipmpe_new.at(ii));
 		SipmT.push_back(isipmt.at(ii));
@@ -263,37 +263,15 @@ void WFCTARec::IslandClean()
 void WFCTARec::CalcMainTel(int main_tel)
 {
 	MainTel = -1;
-	const int tels = WFCTAMap::Instance()->MaxTelId();
-	for(int i=0;i<6;i++) 
-	{
-		pe_size[i] = 0;
-		npix_size[i] = 0;
-	}
-	MaxSipmPe=-1000;
-	MaxSipm=-1;
-	MaxPeTel=-1;
-	for(int ii=0;ii<iSipm.size();ii++)
-	{
-		if(0==groupclean.at(ii)) continue;
-		//if(0==timeclean.at(ii)) continue;
-		int SIPM = iSipm.at(ii);
-		int itel = SIPM/1024;
-		pe_size[itel] += SipmPe.at(ii);
-		npix_size[itel]++;
-		if(MaxSipmPe<SipmPe.at(ii))
-		{
-			MaxSipmPe = SipmPe.at(ii);
-			MaxSipm = SIPM;
-			MaxPeTel = itel+1;
-		}
-	}
-	//printf("MaxSipm:%d MaxPeTel:%d MaxSipmPe:%lf\n",MaxSipm, MaxPeTel, MaxSipmPe);
+
+	CalcParametersInEachTel();
+
 	int maintel_maxpe = MaxPeTel;
 	int maintel_pesize = MaxPeTel;
 	int maintel_npixsize = MaxPeTel;
 	double max_pesize=-1000;
 	double max_npixsize=-1000;
-	for(int itel=0;itel<tels;itel++)
+	for(int itel=0;itel<20;itel++)
 	{
 		//printf("in_pe_size:%lf\n",pe_size[itel]);
 		//printf("in_npix_size:%d\n",npix_size[itel]);
@@ -312,7 +290,7 @@ void WFCTARec::CalcMainTel(int main_tel)
 		MainTel = maintel_pesize;
 	else
 		MainTel = MaxPeTel;
-	//MainTel = main_tel; //test for events that triggered tel01 and te02
+	MainTel = main_tel; //test for events that triggered tel01 and te02
 	//printf("maintel:%d max_pesize:%lf\n",MainTel,max_pesize);
 }
 
@@ -410,10 +388,6 @@ void WFCTARec::CalcCompareSize()
 	}
 	*/
 //	for(int i=0;i<6;i++) printf("%dinter_npix: %d\n",i+1,inter_npix[i]);
-}
-
-void WFCTARec::SetEventOnMainTelFocus()
-{
 }
 
 void WFCTARec::MergeEvent_old(int do_clean)
@@ -890,6 +864,45 @@ void WFCTARec::OuterCentroid()
 	DOutMeanY /= OutSize;
 }
 
+void WFCTARec::CalcParametersInEachTel()
+{
+	MaxPeTel=-1;
+	MaxSipm=-1;
+	MaxSipmPe=-1000;
+	for(int i=0;i<20;i++) 
+	{
+		pe_size[i] = 0;
+		edge_pe_size[i] = 0;
+		npix_size[i] = 0;
+		edge_npix_size[i] = 0;
+	}
+
+	for(int ii=0;ii<iSipm.size();ii++)
+	{
+		if(0==groupclean.at(ii)) continue;
+		//if(0==timeclean.at(ii)) continue;
+		int SIPM = iSipm.at(ii);
+		int itel = SIPM/1024;
+
+		//calc edge pesize and npix
+		if(0==(SIPM%1024)%32 || 31==(SIPM%1024)%32 || (SIPM%1024)<32 || (SIPM%1024)>991)
+		{
+			edge_pe_size[itel] += SipmPe.at(ii);
+			edge_npix_size[itel]++;
+		}
+		//calc pesize and npix
+		pe_size[itel] += SipmPe.at(ii);
+		npix_size[itel]++;
+		//find maxpe_sipm
+		if(MaxSipmPe<SipmPe.at(ii))
+		{
+			MaxSipmPe = SipmPe.at(ii);
+			MaxSipm = SIPM;
+			MaxPeTel = itel+1;
+		}
+	}
+}
+
 void WFCTARec::GetCoreToFocus(int main_tel, double zen,double azi,double corex,double corey, double *x, double *y)
 {
 	double Tel_x, Tel_y;
@@ -1017,12 +1030,26 @@ void WFCTARec::GetPe_Size(double* tel_pe_size) const
 		tel_pe_size[i] = pe_size[i];
 	}
 }
+void WFCTARec::GetEdgePe_Size(double* tel_edge_pe_size) const 
+{
+	for(int i=0;i<6;i++)
+	{
+		tel_edge_pe_size[i] = edge_pe_size[i];
+	}
+}
 
 void WFCTARec::GetNpix_Size(int* tel_npix_size) const 
 {
 	for(int i=0;i<6;i++)
 	{
 		tel_npix_size[i] = npix_size[i];
+	}
+}
+void WFCTARec::GetEdgeNpix_Size(int* tel_edge_npix_size) const 
+{
+	for(int i=0;i<6;i++)
+	{
+		tel_edge_npix_size[i] = edge_npix_size[i];
 	}
 }
 

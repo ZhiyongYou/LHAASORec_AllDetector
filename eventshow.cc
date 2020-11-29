@@ -108,43 +108,32 @@ int main(int argc, char *argv[])
 		//if(iEntry!=66452)	continue;  //20202020
 		//if(!(RawTel[tel1-1]!=0&&RawTel[tel2-1]!=0)){continue;}
 		//if(RawTel[tel1-1]==0){continue;}
+
+		//km2a rec///////////////////////////////////////////////////////
+		if(lhaaso_evt->IsKm2aEvent!=0)
+		{
+			km2aevent->Initcsz();
+			double hitsize = lhaaso_evt->hitid.size();
+			for(int j=0; j<hitsize; j++){
+				int id = lhaaso_evt->hitid[j];
+				double t = lhaaso_evt->hitt[j];
+				double pe = lhaaso_evt->hitpart[j];
+				int mode = lhaaso_evt->hitmode[j];
+				if(mode==0) { km2aevent->AddHitE(id,t,pe,0); }
+				else if(mode==1) { km2aevent->AddHitM(id,t,pe,0); }
+			}
+			G4KM2A_Reconstruction::GetInstance(km2a_array)->eventrecline(km2aevent,km2arec);
+		}
+		double corex_km2a = -km2arec->rec_y;
+		double corey_km2a = km2arec->rec_x;
+		double rec_sourcezen_km2a = km2arec->rec_theta;
+		double rec_sourceazi_km2a = ( km2arec->rec_phi + 270*TMath::DegToRad() ) > 360*TMath::DegToRad() ? km2arec->rec_phi-90*TMath::DegToRad() : km2arec->rec_phi+270*TMath::DegToRad();
+
+		//wcda calc
 		for(int i=0;i<70;i++)
 		{
 			evrec[i] = -1000;
 		}
-
-		//wfcta calc
-		wfctarec->SetWFCTAEvent(lhaaso_evt->isipm, lhaaso_evt->sipmpe, lhaaso_evt->sipmt);
-		wfctarec->TimeClean(100);
-		wfctarec->IslandClean();
-		wfctarec->CalcMainTel(4);
-		wfctarec->MergeEvent();
-		//wfctarec->GroupClean();
-		//wfctarec->IslandClean();
-		wfctarec->CalcHillas();
-		wfctarec->CalcSDP();
-
-		MainTel = wfctarec->GetMainTel();
-		Npix = wfctarec->GetNpix();
-		Size = wfctarec->GetSize();
-		MeanAzi = wfctarec->GetMeanAzi();
-		MeanZen = wfctarec->GetMeanZen();
-		MeanX = wfctarec->GetMeanX();
-		MeanY = wfctarec->GetMeanY();
-		Length = wfctarec->GetLength();
-		Width = wfctarec->GetWidth();
-		double DDelta = wfctarec->GetDelta();
-		SDP_GLine_X_wcda = wfctarec->GetSDP_GLine_X_wcda();
-		SDP_GLine_Y_wcda = wfctarec->GetSDP_GLine_Y_wcda();
-		SDP_G_Angle_W = TMath::ATan2(SDP_GLine_Y_wcda, SDP_GLine_X_wcda);
-		double SDP_GLine_X_km2a = wfctarec->GetSDP_GLine_X_km2a();
-		double SDP_GLine_Y_km2a = wfctarec->GetSDP_GLine_Y_km2a();
-		double SDP_G_Angle_K = TMath::ATan2(SDP_GLine_Y_km2a, SDP_GLine_X_km2a);
-		int TriggerTel_Num = wfctarec->GetTriggerTel_Num();
-		//if(Npix<80||Npix>200)
-		//	continue;
-
-		//wcda calc
 		//lhaasorec->WCDACalc();
 		std::vector<double> wcda_clean_x;
 		std::vector<double> wcda_clean_y;
@@ -181,24 +170,40 @@ int main(int argc, char *argv[])
 //			DealWCDAEvent(lhaaso_evt->cellig,lhaaso_evt->cellpe,lhaaso_evt->cellt, wcda_clean_x,wcda_clean_y,wcda_clean_pe,wcda_clean_ig,wcda_clean_t,evrec);
 		}
 		printf("wcda rec <==========================================================================================================\n");
+
+		//wfcta calc
+		wfctarec->SetWFCTAEvent(lhaaso_evt->isipm, lhaaso_evt->sipmpe, lhaaso_evt->sipmt);
+		wfctarec->TimeClean(100);
+		wfctarec->IslandClean();
+		wfctarec->CalcMainTel(4);
+		wfctarec->GetEventMapOnFocus(wfctarec->GetMainTel(), corex_km2a, corey_km2a, rec_sourceazi_km2a, rec_sourcezen_km2a);
+		wfctarec->MergeEvent();
+		//wfctarec->GroupClean();
+		//wfctarec->IslandClean();
+		wfctarec->CalcHillas();
+		wfctarec->CalcSDP();
+
+		MainTel = wfctarec->GetMainTel();
+		Npix = wfctarec->GetNpix();
+		Size = wfctarec->GetSize();
+		MeanAzi = wfctarec->GetMeanAzi();
+		MeanZen = wfctarec->GetMeanZen();
+		MeanX = wfctarec->GetMeanX();
+		MeanY = wfctarec->GetMeanY();
+		Length = wfctarec->GetLength();
+		Width = wfctarec->GetWidth();
+		double DDelta = wfctarec->GetDelta();
+		SDP_GLine_X_wcda = wfctarec->GetSDP_GLine_X_wcda();
+		SDP_GLine_Y_wcda = wfctarec->GetSDP_GLine_Y_wcda();
+		SDP_G_Angle_W = TMath::ATan2(SDP_GLine_Y_wcda, SDP_GLine_X_wcda);
+		double SDP_GLine_X_km2a = wfctarec->GetSDP_GLine_X_km2a();
+		double SDP_GLine_Y_km2a = wfctarec->GetSDP_GLine_Y_km2a();
+		double SDP_G_Angle_K = TMath::ATan2(SDP_GLine_Y_km2a, SDP_GLine_X_km2a);
+		int TriggerTel_Num = wfctarec->GetTriggerTel_Num();
+		//if(Npix<80||Npix>200)
+		//	continue;
+
 		
-		//km2a rec///////////////////////////////////////////////////////
-		if(lhaaso_evt->IsKm2aEvent!=0)
-		{
-			km2aevent->Initcsz();
-			double hitsize = lhaaso_evt->hitid.size();
-			for(int j=0; j<hitsize; j++){
-				int id = lhaaso_evt->hitid[j];
-				double t = lhaaso_evt->hitt[j];
-				double pe = lhaaso_evt->hitpart[j];
-				int mode = lhaaso_evt->hitmode[j];
-				if(mode==0) { km2aevent->AddHitE(id,t,pe,0); }
-				else if(mode==1) { km2aevent->AddHitM(id,t,pe,0); }
-			}
-			G4KM2A_Reconstruction::GetInstance(km2a_array)->eventrecline(km2aevent,km2arec);
-		}
-		double corex_km2a = -km2arec->rec_y;
-		double corey_km2a = km2arec->rec_x;
 
 		Rp=-1000;
 		DeltaW = -1000;
@@ -298,11 +303,11 @@ int main(int argc, char *argv[])
 
 		if(lhaaso_evt->IsKm2aEvent!=0&&Npix>50&&(SDP_G_Angle_W*57.3>120||SDP_G_Angle_W*57.3<-30)
 					&&RpK>50&&RpK<150&&abs(MeanY*57.3)<6&&MeanAzi*57.3>20&&MeanAzi*57.3<165
-					&&Length/Width>2&&Length/Width<10&&km2arec->NfiltE>20&&km2arec->NpE1/km2arec->NpE2>3&&TriggerTel_Num>1)  //KM2A判断都好事例，但是WFCTA重建不好
+					&&Length/Width>2&&Length/Width<10&&km2arec->NfiltE>20&&km2arec->NpE1/km2arec->NpE2>3&&DeltaK*57.3<2)  //KM2A判断都好事例，但是WFCTA重建不好
 					//&&Length/Width>2&&Length/Width<10&&km2arec->NfiltE>20&&km2arec->NpE1/km2arec->NpE2>3))  //KM2A判断都好事例，但是WFCTA重建不好
 		{	do_flag=1;}
-		//if(!do_flag)
-		//	continue;
+		if(!do_flag)
+			continue;
 
 		std::vector<int> clean_sipm;
 		std::vector<double> clean_pe;
